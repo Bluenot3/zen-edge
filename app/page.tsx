@@ -73,6 +73,8 @@ export default function AISandboxPage() {
   const [homeScreenFading, setHomeScreenFading] = useState(false);
   const [homeUrlInput, setHomeUrlInput] = useState('');
   const [homeContextInput, setHomeContextInput] = useState('');
+  const [projectPrompt, setProjectPrompt] = useState('');
+  const [projectGenerating, setProjectGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<'generation' | 'preview'>('preview');
   const [showStyleSelector, setShowStyleSelector] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
@@ -2348,6 +2350,27 @@ Focus on the key sections and content, making it clean and modern while preservi
     }
   };
 
+  const handlePromptGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!projectPrompt.trim()) return;
+    setProjectGenerating(true);
+    try {
+      const res = await fetch('/api/generate-project', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ prompt: projectPrompt }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed');
+      window.open(data.previewUrl, '_blank', 'noopener,noreferrer');
+      window.open(`/studio/${data.id}`, '_blank', 'noopener,noreferrer');
+    } catch (err: any) {
+      alert(err.message || 'Generation failed');
+    } finally {
+      setProjectGenerating(false);
+    }
+  };
+
   const handleHomeScreenSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!homeUrlInput.trim()) return;
@@ -2804,24 +2827,42 @@ Focus on the key sections and content, making it clean and modern.`;
           
           {/* Main content */}
           <div className="relative z-10 h-full flex items-center justify-center px-4">
-            <div className="text-center max-w-4xl min-w-[600px] mx-auto">
-              {/* Firecrawl-style Header */}
-              <div className="text-center">
-                <h1 className="text-[2.5rem] lg:text-[3.8rem] text-center text-[#36322F] font-semibold tracking-tight leading-[0.9] animate-[fadeIn_0.8s_ease-out]">
-                  <span className="hidden md:inline">Open Lovable</span>
-                  <span className="md:hidden">Open Lovable</span>
-                </h1>
-                <motion.p 
-                  className="text-base lg:text-lg max-w-lg mx-auto mt-2.5 text-zinc-500 text-center text-balance"
-                  animate={{
-                    opacity: showStyleSelector ? 0.7 : 1
-                  }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
+              <div className="text-center max-w-4xl min-w-[600px] mx-auto">
+                {/* Firecrawl-style Header */}
+                <div className="text-center">
+                  <h1 className="text-[2.5rem] lg:text-[3.8rem] text-center text-[#36322F] font-semibold tracking-tight leading-[0.9] animate-[fadeIn_0.8s_ease-out]">
+                    <span className="hidden md:inline">Open Lovable</span>
+                    <span className="md:hidden">Open Lovable</span>
+                  </h1>
+                  <motion.p
+                    className="text-base lg:text-lg max-w-lg mx-auto mt-2.5 text-zinc-500 text-center text-balance"
+                    animate={{
+                      opacity: showStyleSelector ? 0.7 : 1
+                    }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  >
+                    Re-imagine any website, in seconds.
+                  </motion.p>
+                </div>
+
+              <form onSubmit={handlePromptGenerate} className="space-y-3 rounded-2xl border p-4 mt-5 max-w-3xl mx-auto">
+                <label className="block font-semibold">Build from prompt</label>
+                <textarea
+                  className="w-full rounded-xl border p-3"
+                  rows={3}
+                  placeholder="Example: Build a single-page study planner with tasks, deadlines, and a progress bar."
+                  value={projectPrompt}
+                  onChange={(e) => setProjectPrompt(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  disabled={projectGenerating}
+                  className="rounded-xl bg-black px-4 py-2 text-white disabled:opacity-60"
                 >
-                  Re-imagine any website, in seconds.
-                </motion.p>
-              </div>
-              
+                  {projectGenerating ? 'Generating…' : 'Generate App'}
+                </button>
+              </form>
+
               <form onSubmit={handleHomeScreenSubmit} className="mt-5 max-w-3xl mx-auto">
                 <div className="w-full relative group">
                   <input
