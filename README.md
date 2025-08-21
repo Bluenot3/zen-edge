@@ -33,7 +33,11 @@ GROQ_API_KEY=your_groq_api_key  # Get from https://console.groq.com (Fast infere
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)  
+Open [http://localhost:3000](http://localhost:3000)
+
+## Prompt-based app builder
+
+Enter a natural-language description on the homepage to generate a small web app. The project is written to `public/generated/<id>` and a Studio page lets you chat instructions to iteratively update the code.
 
 ## License
 
